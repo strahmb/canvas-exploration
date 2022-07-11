@@ -6,7 +6,12 @@ export interface QueuedAction {
 export class PriorityQueue {
     private _queue: Array<QueuedAction> = [];
 
-    enqueue(element: QueuedAction) {
+    length(): number {
+        return this._queue.length;
+    }
+    
+    enqueue(value:any , priority: number = 0) {
+        let element: QueuedAction = { value, priority };
         let finalPos = 0;
         let high = this._queue.length;
         let middle: number;
@@ -23,5 +28,21 @@ export class PriorityQueue {
 
         // Insert the QueuedAction into the queue
         this._queue = this._queue.splice(finalPos, 0, element);
+    }
+
+    adjustPriorities(add: number) {
+        this._queue.forEach(action => action.value += add);
+    }
+
+    dequeue(): any | undefined{
+        return this._queue.pop()?.value;
+    }
+
+    dequeueWithKey(): QueuedAction | undefined {
+        return this._queue.pop();
+    }
+
+    erase(value: any) {
+        this._queue = this._queue.filter(action => value !== action.value);
     }
 }
