@@ -1,75 +1,171 @@
+import Hero from "./Hero";
+import { setupEventHandlers } from "./InputComponent";
+import Terrain from "./Terrain";
+import World from "./World";
+
 var canvas = <HTMLCanvasElement>document.getElementById("myCanvas");
 var ctx = <CanvasRenderingContext2D>canvas.getContext("2d");
 
-const FPS = 60;
+// Initialize
+let world = new World();
+setupScene(world);
+setupEventHandlers();
 
-const TILE_SIZE = 40;
+// Game loop
+let secondsPassed = 0;
+let oldTimestamp = 0;
+function gameLoop(timestamp) {
+    // Handle time
+    secondsPassed = (timestamp - oldTimestamp) / 1000;
+    oldTimestamp = timestamp;
 
-class Hero {
-    position: { x: number; y: number };
-    size: number;
+    // Process input. Handled by the browser and callbacks?
 
-    constructor(position = { x: 20, y: 40 }) {
-        this.size = 40;
-        this.position = position;
-    }
+    // Update
 
-    draw(ctx: CanvasRenderingContext2D) {
-        ctx.beginPath();
-        ctx.rect(hero.position.x, hero.position.y, hero.size, hero.size);
-        ctx.fillStyle = "#FF0000";
-        ctx.fill();
-        ctx.closePath();
-    }
-}
-
-let keyPress = {
-    right: false,
-    left: false,
-};
-let _stop = false;
-
-let hero = new Hero();
-function render() {
-    // Handle events
-    if (!_stop) {
-        if (keyPress.right) {
-            hero.position.x += 7;
-            if (hero.position.x + hero.size > canvas.width) {
-                hero.position.x = canvas.width - hero.size;
-            }
-        } else if (keyPress.left) {
-            hero.position.x -= 7;
-            if (hero.position.x < 0) {
-                hero.position.x = 0;
-            }
-        }
-    }
-
-    // Draw
+    // Render
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    hero.draw(ctx);
+    world.RenderSystem.update(secondsPassed);
+
+    requestAnimationFrame(gameLoop);
 }
-setInterval(render, 1000 / FPS);
+// setInterval(gameLoop, 1000 / FPS);
+requestAnimationFrame(gameLoop);
 
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
+function setupScene(world: World) {
+    let wallTerrain = new Terrain("#999");
+    let grassTerrain = new Terrain("#aaffaa");
 
-function keyDownHandler(e) {
-    if (e.key == "Right" || e.key == "ArrowRight") {
-        keyPress.right = true;
-    } else if (e.key == "Left" || e.key == "ArrowLeft") {
-        keyPress.left = true;
-    }
-}
+    let level = [
+        [
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+        ],
+        [
+            wallTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            wallTerrain,
+        ],
+        [
+            wallTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            wallTerrain,
+        ],
+        [
+            wallTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            wallTerrain,
+        ],
+        [
+            wallTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            wallTerrain,
+        ],
+        [
+            wallTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            wallTerrain,
+        ],
+        [
+            wallTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            grassTerrain,
+            wallTerrain,
+        ],
+        [
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+            wallTerrain,
+        ],
+    ];
 
-function keyUpHandler(e) {
-    if (e.key == "Right" || e.key == "ArrowRight") {
-        keyPress.right = false;
-    } else if (e.key == "Left" || e.key == "ArrowLeft") {
-        keyPress.left = false;
-    }
+    level.forEach((column, i) =>
+        column.forEach((tile, j) =>
+            world.RenderSystem.add(() => {
+                tile.render(
+                    ctx,
+                    j * tile.getInfo().dimensions.w,
+                    i * tile.getInfo().dimensions.h
+                );
+            })
+        )
+    );
+
+    let hero = new Hero("red", 120, 120);
+    world.RenderSystem.add(() => hero.render(ctx));
 }
 
 // @ts-ignore
